@@ -3,7 +3,6 @@ package edu.tamu.cs.yuan.sudoku;
 import java.util.Arrays;
 
 
-
 public class Main {
 
 	public static void main(String[] args) {
@@ -16,13 +15,16 @@ public class Main {
 										  {0,6,0,0,0,0,2,8,0},
 										  {0,0,0,4,1,9,0,0,5},
 										  {0,0,0,0,8,0,0,7,9}};		
-		GameSolver solver = new GameSolver();
+		
+		
 		//solver.solveSudoku(board);
 		//for(int[] row : board) System.out.println(Arrays.toString(row));
 		
 		
 		BoardController controller = new BoardController(board);
 		controller.display();
+		GameSolver solver = new GameSolver(controller);
+		solver.solveSudoku();
 	}
 
 }

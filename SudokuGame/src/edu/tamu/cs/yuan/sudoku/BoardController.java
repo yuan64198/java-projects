@@ -12,8 +12,11 @@ public class BoardController{
     
     boolean isSolved = false;
     
+    BoardLayout layout;
+    
     public BoardController(int[][] board) {
         setupBoard(board);
+        layout = new BoardLayout(this);
     }
     
     private void setupBoard(int[][] board) {
@@ -71,6 +74,6 @@ public class BoardController{
     }
     
     public void display() {
-    	BoardLayout layout = new BoardLayout(this);
+    	
     }
 }

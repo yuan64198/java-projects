@@ -158,7 +158,7 @@ public class BoardLayout extends JFrame{
 	          */
 	        
 	        
-	        writeDigit(gridSelected, rowSelected, colSelected);
+	        writeDigit(gridSelected, rowSelected, colSelected, -1);
 	         /* 
 	          * [TODO 6] Check if the player has solved the puzzle after this move.
 	          * You could update the masks[][] on correct guess, and check the masks[][] if
@@ -177,8 +177,8 @@ public class BoardLayout extends JFrame{
 		return gridSelected % 3 * 3 + colSelected;
 	}
 	
-	private void writeDigit(int gridSelected, int rowSelected, int colSelected) {
-		String input = subGrids[gridSelected].tfCells[rowSelected][colSelected].getText();
+	void writeDigit(int gridSelected, int rowSelected, int colSelected, int solverAns) {
+		String input = solverAns == -1 ? subGrids[gridSelected].tfCells[rowSelected][colSelected].getText() : Integer.toString(solverAns);
 		int num = input.equals("") ? 0 : Integer.parseInt(input);
         int row = getRow(gridSelected, rowSelected, colSelected);
         int col = getCol(gridSelected, rowSelected, colSelected);
@@ -188,9 +188,11 @@ public class BoardLayout extends JFrame{
         
     	if(num == 0) {
     		subGrids[gridSelected].tfCells[rowSelected][colSelected].setBackground(OPEN_CELL_BGCOLOR);
+    		subGrids[gridSelected].tfCells[rowSelected][colSelected].setText("");
     	}
     	else if(controller.isValidAction(row, col, num)) {
     		subGrids[gridSelected].tfCells[rowSelected][colSelected].setBackground(Color.GREEN);
+    		subGrids[gridSelected].tfCells[rowSelected][colSelected].setText(num + "");
     	}
     	else {
     		subGrids[gridSelected].tfCells[rowSelected][colSelected].setBackground(Color.RED);
