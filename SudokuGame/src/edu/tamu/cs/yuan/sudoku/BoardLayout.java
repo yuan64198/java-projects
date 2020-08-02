@@ -5,6 +5,9 @@ import java.awt.event.*;  // Uses AWT's Event Handlers
 import javax.swing.*;     // Uses Swing's Container/Components
 import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
+import javax.swing.text.AttributeSet;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.PlainDocument;
  
 
 public class BoardLayout extends JFrame{
@@ -16,7 +19,7 @@ public class BoardLayout extends JFrame{
 	public static final int CANVAS_WIDTH  = CELL_SIZE * GRID_SIZE;
 	public static final int CANVAS_HEIGHT = CELL_SIZE * GRID_SIZE;
 	                                             // Board width/height in pixels
-	public static final Color OPEN_CELL_BGCOLOR = Color.YELLOW;
+	public static final Color OPEN_CELL_BGCOLOR = Color.WHITE;
 	public static final Color OPEN_CELL_TEXT_YES = new Color(0, 255, 0);  // RGB
 	public static final Color OPEN_CELL_TEXT_NO = Color.RED;
 	public static final Color CLOSED_CELL_BGCOLOR = new Color(240, 240, 240); // RGB
@@ -67,6 +70,18 @@ public class BoardLayout extends JFrame{
         }
 	}*/
 	
+	class JTextFieldLimit extends PlainDocument {
+		private int limit = 1;
+		public void insertString(int offset, String str, AttributeSet attr) throws BadLocationException {
+			if (str == null)
+		         return;
+			if ((getLength() + str.length()) <= limit && Character.isDigit(str.charAt(0))) {
+		         super.insertString(offset, str, attr);
+			}
+		}
+	}
+	
+	
 	class SubGrid extends JPanel {
 		JTextField[][] tfCells = new JTextField[SUBGRID_SIZE][SUBGRID_SIZE];
 		Border blackline = BorderFactory.createLineBorder(Color.black);
@@ -80,6 +95,7 @@ public class BoardLayout extends JFrame{
 			for(int row = 0; row < SUBGRID_SIZE; ++row) {
 				for(int col = 0; col < SUBGRID_SIZE; ++col) {
 					tfCells[row][col] = new JTextField(); // Allocate element of array
+					tfCells[row][col].setDocument(new JTextFieldLimit());
 		            add(tfCells[row][col]);            // ContentPane adds JTextField
 		            
 		            if(controller.board[X * 3 + row][Y * 3 + col] == 0) {
@@ -163,16 +179,24 @@ public class BoardLayout extends JFrame{
 	
 	private void writeDigit(int gridSelected, int rowSelected, int colSelected) {
 		String input = subGrids[gridSelected].tfCells[rowSelected][colSelected].getText();
-		int num = Integer.parseInt(input);
+		int num = input.equals("") ? 0 : Integer.parseInt(input);
         int row = getRow(gridSelected, rowSelected, colSelected);
         int col = getCol(gridSelected, rowSelected, colSelected);
-        if(controller.isValidAction(row, col, num)) {
-        	subGrids[gridSelected].tfCells[rowSelected][colSelected].setBackground(Color.GREEN);
-        }
-        else {
-        	subGrids[gridSelected].tfCells[rowSelected][colSelected].setBackground(Color.RED);
-        }
-        controller.writeDigit(row, col, num);
+        
+        int original_num = controller.board[row][col];
+    	controller.deleteDigit(row, col, original_num);
+        
+    	if(num == 0) {
+    		subGrids[gridSelected].tfCells[rowSelected][colSelected].setBackground(OPEN_CELL_BGCOLOR);
+    	}
+    	else if(controller.isValidAction(row, col, num)) {
+    		subGrids[gridSelected].tfCells[rowSelected][colSelected].setBackground(Color.GREEN);
+    	}
+    	else {
+    		subGrids[gridSelected].tfCells[rowSelected][colSelected].setBackground(Color.RED);
+    	}
+    	controller.writeDigit(row, col, num);
+        
 	}
 	
 }
