@@ -28,7 +28,15 @@ public class BoardLayout extends JFrame{
 	
 	private SubGrid[] subGrids;
 	InputListener listener = new InputListener();
-	BoardController controller;
+	private BoardController controller;
+	
+	static JMenuBar mb;
+	
+	// JMenu 
+    static JMenu mainMenu, startNewGame; 
+  
+    // Menu items 
+    static JMenuItem showAnswer, easy, medium, hard, reset;
 	
 	public BoardLayout (BoardController controller) {
 		
@@ -41,10 +49,10 @@ public class BoardLayout extends JFrame{
         for (int row = 0; row < GRID_SIZE; row++) {
             for (int col = 0; col < GRID_SIZE; col++) {
                 int index = (row * GRID_SIZE) + col;
-                SubGrid board = new SubGrid(index);
+                SubGrid subGrid = new SubGrid(index);
                 //board.setBorder(new CompoundBorder(new LineBorder(Color.GRAY, 3), new EmptyBorder(4, 4, 4, 4)));
-                subGrids[index] = board;
-                add(board);
+                subGrids[index] = subGrid;
+                add(subGrid);
             }
         }
         
@@ -52,23 +60,12 @@ public class BoardLayout extends JFrame{
         setTitle("Sudoku");
         setPreferredSize(new Dimension(CANVAS_WIDTH * 3, CANVAS_HEIGHT * 3));
         pack();
+        
+        setMenuBar();
         setVisible(true);
 	}
 	
 	
-	//4:      0100
-	//7:      0111
-	//4 ^ 7 = 0100 = 4
-	/*
-	class Grid extends JPanel{
-        
-
-        private SubGrid[] subGrids;
-
-        public Grid() {
-            
-        }
-	}*/
 	
 	class JTextFieldLimit extends PlainDocument {
 		private int limit = 1;
@@ -98,14 +95,15 @@ public class BoardLayout extends JFrame{
 					tfCells[row][col].setDocument(new JTextFieldLimit());
 		            add(tfCells[row][col]);            // ContentPane adds JTextField
 		            
-		            if(controller.board[X * 3 + row][Y * 3 + col] == 0) {
+		            if(controller.board.isEmptyDigit(X * 3 + row, Y * 3 + col)) {
+		            	//System.out.println(X * 3 + row);
 		            	tfCells[row][col].setText("");
 		            	tfCells[row][col].setEditable(true);
 		            	tfCells[row][col].setBackground(OPEN_CELL_BGCOLOR);
 		            	tfCells[row][col].addActionListener(listener);
 		            }
 		            else {
-		            	tfCells[row][col].setText(controller.board[X * 3 + row][Y * 3 + col] + "");
+		            	tfCells[row][col].setText(controller.board.getNum(X * 3 + row, Y * 3 + col) + "");
 		            	tfCells[row][col].setEditable(false);
 		                tfCells[row][col].setBackground(CLOSED_CELL_BGCOLOR);
 		                tfCells[row][col].setForeground(CLOSED_CELL_TEXT);
@@ -114,18 +112,47 @@ public class BoardLayout extends JFrame{
 		            tfCells[row][col].setFont(FONT_NUMBERS);
 				}
 			}
-			this.setBorder(blackline);
+			setBorder(blackline);
 			setVisible(true);
 		}
 	}
 	
-	   // [TODO 2]
-	   // Inner class to be used as ActionEvent listener for ALL JTextFields
+	   
 	private class InputListener implements ActionListener {
 		@Override
 		public void actionPerformed(ActionEvent e) {
-			// All the 9*9 JTextFileds invoke this handler. We need to determine
-	        // which JTextField (which row and column) is the source for this invocation.
+			String command = e.getActionCommand();
+			//System.out.println(command);
+			if(command.equals("Show Answer")) {
+				System.out.println("Show Answer");
+				controller.solveSudoku();
+				reset();
+				return;
+			}
+			else if(command.equals("Reset")) {
+				controller.resetBoard();
+				//System.out.println("Reset");
+				reset();
+				return;
+			}
+			else if(command.equals("Easy")) {
+				controller.loadNewBoard(0);
+				//System.out.println("Easy");
+				reset();
+				return;
+			}
+			else if(command.equals("Medium")) {
+				controller.loadNewBoard(1);
+				//System.out.println("Medium");
+				reset();
+				return;
+			}
+			else if(command.equals("Hard")) {
+				controller.loadNewBoard(2);
+				//System.out.println("Hard");
+				reset();
+				return;
+			}
 	        int gridSelected = -1;
 			int rowSelected = -1;
 	        int colSelected = -1;
@@ -145,27 +172,45 @@ public class BoardLayout extends JFrame{
 		            }
 		        }
 	        }
-	        //System.out.println(gridSelected);
-	        //System.out.println(rowSelected);
-	        //System.out.println(colSelected);
-	         /*
-	          * [TODO 5]
-	          * 1. Get the input String via tfCells[rowSelected][colSelected].getText()
-	          * 2. Convert the String to int via Integer.parseInt().
-	          * 3. Assume that the solution is unique. Compare the input number with
-	          *    the number in the puzzle[rowSelected][colSelected].  If they are the same,
-	          *    set the background to green (Color.GREEN); otherwise, set to red (Color.RED).
-	          */
 	        
 	        
 	        writeDigit(gridSelected, rowSelected, colSelected, -1);
-	         /* 
-	          * [TODO 6] Check if the player has solved the puzzle after this move.
-	          * You could update the masks[][] on correct guess, and check the masks[][] if
-	          * any input cell pending.
-	          */
+	        if(controller.board.isSudokuSolved()) {
+	        	JOptionPane.showMessageDialog(null, "Congratulation!");
+	        	System.out.println(command);
+	        }
+	        
 		}
 		
+	}
+	
+	private void setMenuBar() {
+		mb = new JMenuBar();
+		mainMenu = new JMenu("Menu");
+		startNewGame = new JMenu("Start New Game");
+		showAnswer = new JMenuItem("Show Answer");
+		easy = new JMenuItem("Easy");
+		medium = new JMenuItem("Medium");
+		hard = new JMenuItem("Hard");
+		reset = new JMenuItem("Reset");
+		
+		startNewGame.add(easy);
+		startNewGame.add(medium);
+		startNewGame.add(hard);
+		
+		
+		mainMenu.add(startNewGame);
+		mainMenu.add(reset);
+		mainMenu.add(showAnswer);
+		
+		showAnswer.addActionListener(listener);
+		reset.addActionListener(listener);
+		easy.addActionListener(listener); 
+		medium.addActionListener(listener); 
+		hard.addActionListener(listener); 
+        
+		mb.add(mainMenu);
+        setJMenuBar(mb);
 	}
 	
 	private int getRow(int gridSelected, int rowSelected, int colSelected) {
@@ -183,22 +228,46 @@ public class BoardLayout extends JFrame{
         int row = getRow(gridSelected, rowSelected, colSelected);
         int col = getCol(gridSelected, rowSelected, colSelected);
         
-        int original_num = controller.board[row][col];
-    	controller.deleteDigit(row, col, original_num);
+    	controller.board.deleteDigit(row, col);
         
     	if(num == 0) {
     		subGrids[gridSelected].tfCells[rowSelected][colSelected].setBackground(OPEN_CELL_BGCOLOR);
     		subGrids[gridSelected].tfCells[rowSelected][colSelected].setText("");
     	}
-    	else if(controller.isValidAction(row, col, num)) {
+    	else if(controller.board.canPutNumber(row, col, num)) {
     		subGrids[gridSelected].tfCells[rowSelected][colSelected].setBackground(Color.GREEN);
     		subGrids[gridSelected].tfCells[rowSelected][colSelected].setText(num + "");
     	}
     	else {
     		subGrids[gridSelected].tfCells[rowSelected][colSelected].setBackground(Color.RED);
     	}
-    	controller.writeDigit(row, col, num);
+    	controller.board.writeDigit(row, col, num);
         
 	}
 	
+	
+	private void reset() {
+		for(int gridSelected = 0; gridSelected < subGrids.length; ++gridSelected) {
+			for(int rowSelected = 0; rowSelected < SUBGRID_SIZE; ++rowSelected) {
+				for(int colSelected = 0; colSelected < SUBGRID_SIZE; ++colSelected) {
+					int row = getRow(gridSelected, rowSelected, colSelected);
+					int col = getCol(gridSelected, rowSelected, colSelected);
+					int num = controller.board.getNum(row, col);
+					
+					if(controller.board.isEmptyDigit(row, col)) {
+						subGrids[gridSelected].tfCells[rowSelected][colSelected].setText("");
+						subGrids[gridSelected].tfCells[rowSelected][colSelected].setEditable(true);
+						subGrids[gridSelected].tfCells[rowSelected][colSelected].setBackground(OPEN_CELL_BGCOLOR);
+						subGrids[gridSelected].tfCells[rowSelected][colSelected].addActionListener(listener);
+					}
+					else {
+						subGrids[gridSelected].tfCells[rowSelected][colSelected].setText(Integer.toString(num));
+						subGrids[gridSelected].tfCells[rowSelected][colSelected].setEditable(false);
+						subGrids[gridSelected].tfCells[rowSelected][colSelected].setBackground(CLOSED_CELL_BGCOLOR);
+						subGrids[gridSelected].tfCells[rowSelected][colSelected].setForeground(CLOSED_CELL_TEXT);
+					}
+				}
+			}
+		}
+	}
 }

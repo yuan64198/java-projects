@@ -2,78 +2,47 @@ package edu.tamu.cs.yuan.sudoku;
 
 
 public class BoardController{
-	
-	
-	int[][] board;
-	int BOARD_SIZE = 9;
-	int[][] rows = new int[9][10];
-    int[][] cols = new int[9][10];
-    int[][] boxes = new int[9][10];
     
-    boolean isSolved = false;
+    private BoardLayout layout;
     
-    BoardLayout layout;
+    
+    protected SudokuBoard board;
+    
+    private int[][] original_board;
     
     public BoardController(int[][] board) {
-        setupBoard(board);
+    	
+        this.board = new SudokuBoard(board);
+        this.original_board = board;
         layout = new BoardLayout(this);
     }
     
-    private void setupBoard(int[][] board) {
-    	this.board = new int[BOARD_SIZE][BOARD_SIZE];
-    	for(int row = 0; row < 9; ++row)
-    		for(int col = 0; col < 9; ++col)
-    			this.board[row][col] = board[row][col];
-    	
-        for(int row = 0; row < 9; ++row) {
-            for(int col = 0; col < 9; ++col) {
-                int num = this.board[row][col];
-                if(num == 0) continue;
-                rows[row][num] += 1;
-                cols[col][num] += 1;
-                boxes[getBox(row, col)][num] += 1;
-            }
-        }
-        
-        //System.out.println(rows[8][4]);
-        //System.out.println(cols[8][4]);
-        //System.out.println(boxes[8][4]);
+    protected void resetBoard() {
+    	this.board = new SudokuBoard(this.original_board);
     }
     
-    void writeDigit(int row, int col, int num) {
-    	if(num == 0) return;
-        rows[row][num] += 1;
-        cols[col][num] += 1;
-        boxes[getBox(row, col)][num] += 1;
-        board[row][col] = num;
-    }
-    
-    void deleteDigit(int row, int col, int num) {
-    	if(num == 0) return;
-        rows[row][num] -= 1;
-        cols[col][num] -= 1;
-        boxes[getBox(row, col)][num] -= 1;
-        board[row][col] = 0;
-    }
-    
-    boolean isValidAction(int row, int col, int num) {
-        if(rows[row][num] > 0 || cols[col][num] > 0 || boxes[getBox(row, col)][num] > 0) return false;
-        else return true;
+    protected void loadNewBoard(int level) {
+    	if(level == 0) {
+    		this.original_board = new BoardGenerator().generateBoard(40);
+    		this.board = new SudokuBoard(this.original_board);
+    		
+    	}
+    	else if(level == 1) {
+    		this.original_board = new BoardGenerator().generateBoard(35);
+    		this.board = new SudokuBoard(this.original_board);
+    	}
+    	else {
+    		this.original_board = new BoardGenerator().generateBoard(30);
+    		this.board = new SudokuBoard(this.original_board);
+    	}
     }
     
 
     
-    boolean isEmptySlot(int row, int col) {
-        return board[row][col] == 0;
+    void solveSudoku() {
+    	resetBoard();
+    	GameSolver solver = new GameSolver();
+    	solver.solveSudoku(this.board, 1);
     }
-    
-    int getBox(int row, int col) {
-        int blockX = row / 3;
-        int blockY = col / 3;
-        return blockX * 3 + blockY;
-    }
-    
-    public void display() {
-    	
-    }
+
 }
